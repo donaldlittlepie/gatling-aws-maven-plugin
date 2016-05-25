@@ -36,7 +36,7 @@ public class AwsGatlingRunner {
         transferManager = new TransferManager(credentials);
     }
 
-    public Map<String, Instance> launchEC2Instances(String instanceType, int instanceCount, String ec2KeyPairName, String ec2SecurityGroup, String amiId) {
+    public Map<String, Instance> launchEC2Instances(String instanceType, int instanceCount, String ec2KeyPairName, String ec2SecurityGroup, String amiId, String subnetId) {
         Map<String, Instance> instances = new HashMap<String, Instance>();
 
         // Setup a filter to find any previously generated EC2 instances.
@@ -62,13 +62,23 @@ public class AwsGatlingRunner {
         if(instances.isEmpty()) {
             System.out.println("Did not find any existing instances, starting new ones.");
 
-            RunInstancesResult runInstancesResult = ec2client.runInstances(new RunInstancesRequest()
+            RunInstancesRequest runInstances = new RunInstancesRequest()
                     .withImageId(amiId)
                     .withInstanceType(instanceType)
                     .withMinCount(instanceCount)
                     .withMaxCount(instanceCount)
-                    .withKeyName(ec2KeyPairName)
-                    .withSecurityGroups(ec2SecurityGroup));
+                    .withKeyName(ec2KeyPairName);
+
+            if (subnetId != null && !subnetId.isEmpty()) {
+                runInstances = runInstances.withSubnetId(subnetId)
+                    .withSecurityGroupIds(ec2SecurityGroup);
+            }
+            else {
+
+                runInstances = runInstances.withSecurityGroups(ec2SecurityGroup);
+            }
+
+            RunInstancesResult runInstancesResult = ec2client.runInstances(runInstances);
 
             for (Instance instance : runInstancesResult.getReservation().getInstances()) {
                 System.out.println(instance.getInstanceId() + " launched");

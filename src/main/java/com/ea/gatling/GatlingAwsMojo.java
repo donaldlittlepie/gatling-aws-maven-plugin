@@ -30,6 +30,9 @@ public class GatlingAwsMojo extends AbstractMojo {
      */
     private static final int SLEEP_TIME_TERMINATION_MS = 1000;
 
+    @Parameter(property = "ec2.ssh.port", defaultValue = "22")
+    private int ec2sshPort;
+
     @Parameter(property = "ec2.instance.count", defaultValue = "1")
     private Integer instanceCount;
 
@@ -139,6 +142,7 @@ public class GatlingAwsMojo extends AbstractMojo {
             String host = instance.getPublicDnsName();
             Runnable worker = new AwsGatlingExecutor(
                     host,
+                    ec2sshPort,
                     sshPrivateKey,
                     testName,
                     installScript,

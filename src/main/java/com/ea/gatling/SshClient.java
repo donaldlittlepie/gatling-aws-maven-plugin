@@ -17,8 +17,8 @@ public class SshClient {
     private static final long INITIAL_SLEEP_TIME_MS = 100;
     private static final long BACKOFF_FACTOR = 2;
 
-    public static void scpUpload(String host, String user, String privateKeyPath, String localFile, String remoteDir) throws IOException {
-        SSHClient ssh = getSshClient(host, user, privateKeyPath);
+    public static void scpUpload(String host, int port, String user, String privateKeyPath, String localFile, String remoteDir) throws IOException {
+        SSHClient ssh = getSshClient(host, port, user, privateKeyPath);
 
         try {
             Session session = ssh.startSession();
@@ -34,8 +34,8 @@ public class SshClient {
         }
     }
 
-    public static void scpDownload(String host, String user, String privateKeyPath, String remoteFile, String localDir) throws IOException {
-        SSHClient ssh = getSshClient(host, user, privateKeyPath);
+    public static void scpDownload(String host, int port, String user, String privateKeyPath, String remoteFile, String localDir) throws IOException {
+        SSHClient ssh = getSshClient(host, port, user, privateKeyPath);
 
         try {
             Session session = ssh.startSession();
@@ -51,8 +51,8 @@ public class SshClient {
         }
     }
 
-    public static void executeCommand(String host, String user, String privateKeyPath, String command, boolean debugOutputEnabled) throws IOException {
-        SSHClient ssh = getSshClient(host, user, privateKeyPath);
+    public static void executeCommand(String host, int port, String user, String privateKeyPath, String command, boolean debugOutputEnabled) throws IOException {
+        SSHClient ssh = getSshClient(host, port, user, privateKeyPath);
 
         try {
             Session session = ssh.startSession();
@@ -107,14 +107,14 @@ public class SshClient {
         }
     }
 
-    private static SSHClient getSshClient(String host, String user, String privateKeyPath) throws IOException {
+    private static SSHClient getSshClient(String host, int port, String user, String privateKeyPath) throws IOException {
         long sleepTimeMs = INITIAL_SLEEP_TIME_MS;
 
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
                 SSHClient ssh = new SSHClient();
                 ssh.addHostKeyVerifier(new PromiscuousVerifier());
-                ssh.connect(host);
+                ssh.connect(host, port);
                 ssh.authPublickey(user, privateKeyPath);
                 ssh.useCompression();
                 return ssh;
